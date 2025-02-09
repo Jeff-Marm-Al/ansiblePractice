@@ -1,0 +1,58 @@
+- name: Create Ubuntu Containers with SSH
+  hosts: localhost      # The machine this playbook is targeting
+  become: false         # not running as root
+  tasks:
+    - name: Create and start Ubuntu Containers
+      community.docker.docker_container:
+        name: "ansible_target_{{ item }}"     # Task loops 3 times and a number for each container
+        image: ubuntu:latest
+        state: started
+        restart_policy: "unless-stopped"      # keeps container running unless manually stopped
+        tty: true                             # sets a terminal for processes to run
+        command: "/bin/bash -c 'while true; do sleep 1000; done'"
+        published_ports:
+          - "222{{ item }}:22"                # assigning a port number to each container
+      loop:
+        - 1
+        - 2
+        - 3
+    
+    - name: Install OpenSSH
+      community.docker.docker_container_exec:
+        container: "ansible_target_{{ item }}"
+        command: >
+          bash -c "
+          apt-get update && apt-get install -y apt-utils openssh-server sudo &&
+          service ssh start"
+      loop:
+        - 1
+        - 2
+        - 3
+
+    - name: Create Ansible User inside the Container
+      community.docker.docker_container_exec:
+        container: "ansible_target_{{ item }}"
+        command: >
+          bash -c "
+          useradd -m -s /bin/bash ansible &&
+          echo 'ansible:password' | chpasswd &&
+          mkdir -p /home/ansible/.ssh &&
+          touch /home/ansible/.ssh/authorized_keys &&
+          chown -R ansible:ansible /home/ansible/.ssh &&
+          chown -R ansible:ansible /home/ansible/.ssh/authorized_keys &&
+          echo 'ansible ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+          "
+      loop:
+        - 1
+        - 2
+        - 3
+
+    - name: Copy SSH Public Key to Containers
+      community.docker.docker_container_copy_into:
+        container: "ansible_target_{{ item }}"
+        path: "~/.ssh/ansible_practice.pub"          # your public ssh key directory
+        container_path: "/home/ansible/.ssh/authorized_keys"  # copies your public key to container
+      loop:
+        - 1
+        - 2
+        - 3 
