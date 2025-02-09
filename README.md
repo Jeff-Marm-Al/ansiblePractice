@@ -32,3 +32,7 @@ In order to set your machine (assuming Windows) up to run playbooks here, you'll
     ```
     (venv) user@user-pc:~$ git clone https://github.com/Jeff-Marm-Al/ansiblePractice.git
     ```
+8. Generate an ssh key pair
+    ```
+    (venv) user@user-pc:~$ ssh-keygen -t rsa -b 4096
+    ```
