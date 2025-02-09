@@ -36,3 +36,18 @@ In order to set your machine (assuming Windows) up to run playbooks here, you'll
     ```
     (venv) user@user-pc:~$ ssh-keygen -t rsa -b 4096
     ```
+
+## Playbooks
+Currently there's only one playbook, the createContainers.yaml playbook. In order to run this playbook, you'll need to run the following command:
+
+```
+(venv) user@user-pc:~/ansiblePractice/playbooks$ ansible-playbook createContainers.yaml
+```
+If successful, you can check Docker Desktop to verify the containers exist or run the following command to list the containers:
+```
+docker ps -a
+```
+You can then try to ssh to the container by running the following command:
+```
+ssh -i [path to your private key/ansible_practice] -p [port number] ansible@localhost
+```
